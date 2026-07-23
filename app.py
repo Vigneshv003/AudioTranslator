@@ -1,5 +1,3 @@
-Python 3.12.0rc3 (tags/v3.12.0rc3:b973ab3, Sep 19 2023, 09:39:54) [MSC v.1935 64 bit (AMD64)] on win32
-Type "help", "copyright", "credits" or "license()" for more information.
 import os
 import tempfile
 import shutil
@@ -56,40 +54,41 @@ if uploaded_file:
         suffix = os.path.splitext(uploaded_file.name)[1]
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_audio:
-...             tmp_audio.write(uploaded_file.read())
-...             temp_audio_path = tmp_audio.name
-... 
-...         st.info("Transcribing and translating...")
-... 
-...         result = model.transcribe(
-...             temp_audio_path,
-...             task="translate",
-...             language="es",
-...             fp16=False
-...         )
-... 
-...         # Create Word document
-...         doc = Document()
-...         doc.add_heading("Meeting Transcript", level=1)
-...         doc.add_paragraph(result["text"])
-... 
-...         output_path = tempfile.NamedTemporaryFile(
-...             delete=False,
-...             suffix=".docx"
-...         ).name
-... 
-...         doc.save(output_path)
-... 
-...         os.remove(temp_audio_path)
-... 
-...         st.success("Completed Successfully!")
-... 
-...         with open(output_path, "rb") as file:
-... 
-...             st.download_button(
-...                 label="📥 Download Word File",
-...                 data=file,
-...                 file_name="Meeting_Transcript.docx",
-...                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-...             )
-... 
+            tmp_audio.write(uploaded_file.read())
+            temp_audio_path = tmp_audio.name
+
+        st.info("Transcribing and translating...")
+
+        result = model.transcribe(
+            temp_audio_path,
+            task="translate",
+            language="es",
+            fp16=False
+        )
+
+        # Create Word document
+        doc = Document()
+        doc.add_heading("Meeting Transcript", level=1)
+        doc.add_paragraph(result["text"])
+
+        output_path = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".docx"
+        ).name
+
+        doc.save(output_path)
+
+        os.remove(temp_audio_path)
+
+        st.success("Completed Successfully!")
+
+        with open(output_path, "rb") as file:
+
+            st.download_button(
+                label="📥 Download Word File",
+                data=file,
+                file_name="Meeting_Transcript.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+
+        os.remove(output_path)
