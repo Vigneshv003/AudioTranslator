@@ -1,4 +1,5 @@
 streamlit
 openai-whisper
-python-docx
 torch
+python-docx
+ffmpeg-python
