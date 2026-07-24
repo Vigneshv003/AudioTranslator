@@ -1,5 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
-streamlit
-openai-whisper
+streamlit==1.60.0
+openai-whisper==20250625
 python-docx
+torch==2.7.1
