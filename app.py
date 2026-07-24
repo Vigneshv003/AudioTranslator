@@ -24,8 +24,7 @@ st.write("Upload a WAV, MP3 or M4A file and download the English transcript.")
 # ==========================================================
 
 if os.name == "nt":
-    FFMPEG_DIR = r"C:\Users\Vigneshv\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin"
-    os.environ["PATH"] = FFMPEG_DIR + os.pathsep + os.environ["PATH"]
+    
 
 # ==========================================================
 # MODEL
