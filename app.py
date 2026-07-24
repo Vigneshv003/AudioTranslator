@@ -32,8 +32,8 @@ st.write("Upload a WAV, MP3 or M4A file and download the English transcript.")
 
 MODEL_NAME = st.selectbox(
     "Select Whisper Model",
-    ["small", "medium", "large-v3"],
-    index=0
+    ["tiny", "base", "small"],
+    index=1
 )
 
 uploaded_file = st.file_uploader(
@@ -45,9 +45,12 @@ if uploaded_file:
 
     if st.button("Convert to Word"):
 
-        with st.spinner("Loading Whisper model..."):
+       with st.spinner("Loading Whisper model..."):
+    model = load_whisper_model(MODEL_NAME)
 
-            model = whisper.load_model(MODEL_NAME)
+            @st.cache_resource
+def load_whisper_model(model_name):
+    return whisper.load_model(model_name)
 
         # Save uploaded file temporarily
         suffix = os.path.splitext(uploaded_file.name)[1]
