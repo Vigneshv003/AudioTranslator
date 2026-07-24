@@ -23,7 +23,7 @@ st.write("Upload a WAV, MP3 or M4A file and download the English transcript.")
 # Remove this after deployment if FFmpeg is installed normally
 # ==========================================================
 
-if os.name == "nt":
+
     
 
 # ==========================================================
