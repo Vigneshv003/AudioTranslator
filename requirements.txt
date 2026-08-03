@@ -1,4 +1,5 @@
 streamlit
-openai-whisper
+faster-whisper
 python-docx
-torch
+ctranslate2
+av
