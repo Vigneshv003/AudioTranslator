@@ -1,7 +1,7 @@
 import os
 import tempfile
 import streamlit as st
-import whisper
+from faster_whisper import WhisperModel
 from docx import Document
 
 # ==========================================================
@@ -15,27 +15,37 @@ st.set_page_config(
 )
 
 st.title("🎙️ Spanish Audio → English Word")
-st.write("Upload a WAV, MP3 or M4A file and download the English transcript.")
+st.write("Upload a WAV, MP3, or M4A file and download the English transcript.")
+
+# ==========================================================
+# SETTINGS
+# ==========================================================
 
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 
 # ==========================================================
-# LOAD MODEL (Only Once)
+# LOAD MODEL (Cached)
 # ==========================================================
 
 @st.cache_resource(show_spinner=False)
 def load_model(model_name):
-    return whisper.load_model(model_name)
+    return WhisperModel(
+        model_name,
+        device="cpu",
+        compute_type="int8"
+    )
 
 # ==========================================================
-# MODEL
+# MODEL SELECTION
 # ==========================================================
 
 MODEL_NAME = st.selectbox(
     "Select Whisper Model",
     ["tiny", "base", "small"],
-    index=1
+    index=1  # base recommended
 )
+
+st.caption("Recommended: **base** for best speed and accuracy on Streamlit Cloud.")
 
 # ==========================================================
 # FILE UPLOAD
@@ -52,84 +62,87 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file:
 
-    # Limit upload size
+    # Check file size
     if uploaded_file.size > MAX_FILE_SIZE:
         st.error("❌ File size exceeds 25 MB.")
         st.stop()
 
     st.write(f"**File:** {uploaded_file.name}")
-    st.write(f"**Size:** {uploaded_file.size/1024/1024:.2f} MB")
+    st.write(f"**Size:** {uploaded_file.size / 1024 / 1024:.2f} MB")
 
     if st.button("Convert to Word", type="primary"):
 
         temp_audio_path = None
-        output_doc = None
+        output_doc_path = None
 
         try:
-
             progress = st.progress(0)
 
+            # Load model
             progress.progress(10)
-
-            # Load Whisper Model
-            with st.spinner("Loading Whisper Model..."):
+            with st.spinner("Loading Whisper model..."):
                 model = load_model(MODEL_NAME)
 
+            # Save uploaded audio
             progress.progress(30)
 
-            # Save uploaded file
             suffix = os.path.splitext(uploaded_file.name)[1]
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_audio:
                 temp_audio.write(uploaded_file.getbuffer())
                 temp_audio_path = temp_audio.name
 
+            # Transcribe & translate
             progress.progress(50)
 
-            with st.spinner("Transcribing Audio..."):
+            with st.spinner("Transcribing and translating audio..."):
 
-                result = model.transcribe(
+                segments, info = model.transcribe(
                     temp_audio_path,
                     task="translate",
-                    language="es",
-                    fp16=False
+                    language="es"
                 )
+
+                transcript = " ".join(segment.text for segment in segments)
 
             progress.progress(80)
 
             # Create Word document
             doc = Document()
             doc.add_heading("Meeting Transcript", level=1)
-            doc.add_paragraph(result["text"])
+            doc.add_paragraph(transcript)
 
-            output_doc = tempfile.NamedTemporaryFile(
+            output_doc_path = tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=".docx"
             ).name
 
-            doc.save(output_doc)
+            doc.save(output_doc_path)
 
             progress.progress(100)
 
-            st.success("✅ Translation Completed!")
+            st.success("✅ Translation completed successfully!")
 
-            with open(output_doc, "rb") as f:
+            # Preview
+            with st.expander("📄 Preview Transcript"):
+                st.write(transcript[:3000] + ("..." if len(transcript) > 3000 else ""))
 
+            # Download
+            with open(output_doc_path, "rb") as f:
                 st.download_button(
-                    "📥 Download Word File",
+                    label="📥 Download Word File",
                     data=f.read(),
                     file_name="Meeting_Transcript.docx",
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
 
         except Exception as e:
-
-            st.error(f"❌ {e}")
+            st.error(f"❌ Error: {str(e)}")
 
         finally:
-
+            # Cleanup temp files
             if temp_audio_path and os.path.exists(temp_audio_path):
                 os.remove(temp_audio_path)
 
-            if output_doc and os.path.exists(output_doc):
-                os.remove(output_doc)
+            if output_doc_path and os.path.exists(output_doc_path):
+                os.remove(output_doc_path)
