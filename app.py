@@ -21,7 +21,7 @@ st.write("Upload a WAV, MP3, or M4A file and download the English transcript.")
 # SETTINGS
 # ==========================================================
 
-MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
+MAX_FILE_SIZE = 60 * 1024 * 1024  # 60 MB
 
 # ==========================================================
 # LOAD MODEL (Cached)
